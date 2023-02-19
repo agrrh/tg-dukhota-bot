@@ -92,10 +92,10 @@ class Message(BaseModel):
 
         logging.debug(f"same_media_ratio is {same_media_ratio}")
 
-        if same_media_ratio >= 0.66 and same_text_ratio > 0.80:
+        if same_media_ratio >= 0.66 and same_text_ratio > 0.50:
             return True
 
-        if same_text_ratio > 0.90:
+        if same_text_ratio > 0.75:
             return True
 
         pass
