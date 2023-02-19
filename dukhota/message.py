@@ -71,15 +71,15 @@ class Message(BaseModel):
         if same_forwarded:
             return True
 
-        if self.media_ids:
-            compare_self = self.caption
-            compare_other = other.caption
-        else:
-            compare_self = self.text
-            compare_other = other.text
+        compare_self = self.text or self.caption or ""
+        compare_other = other.text or other.caption or ""
 
-        same_text_ratio = difflib.SequenceMatcher(None, compare_self, compare_other).ratio()  # 0.01 to 1.00
-        logging.debug(f"Same text ratio for {self.fingerprint} vs {other.fingerprint}: {same_text_ratio}")
+        if "" in (compare_self, compare_other):
+            logging.debug(f"No data for {self.fingerprint} vs {other.fingerprint}: setting same_text_ratio to 0.0")
+            same_text_ratio = 0.0
+        else:
+            same_text_ratio = difflib.SequenceMatcher(None, compare_self, compare_other).ratio()  # 0.00 to 1.00
+            logging.debug(f"Same text ratio for {self.fingerprint} vs {other.fingerprint}: {same_text_ratio}")
 
         # same media
 
