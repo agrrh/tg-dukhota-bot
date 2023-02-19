@@ -83,10 +83,10 @@ async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  
 
             if msg == other_msg:
                 logging.warning("Found match during deep search")
-                await response(update, other_msg, emoji="🥸")
 
+                await response(update, other_msg, emoji="🥸")
                 break
 
-    logging.warning(f"Saving message {msg.fingerprint} to channel {msg.channel_id} history")
+    logging.warning(f"Updating channel {msg.channel_id} history")
     r.lpush(f"history:{msg.channel_id}", msg.fingerprint)
     r.ltrim(f"history:{msg.channel_id}", 0, channel_history_limit)
