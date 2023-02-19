@@ -1,5 +1,14 @@
 # Telegram Dukhota Bot
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@700&display=swap" rel="stylesheet">
+
+<p align="center">
+  <img src="./runatlantis.io/.vuepress/public/hero.png" alt="Atlantis Logo"/><br><br>
+  <b>Terraform Pull Request Automation</b>
+</p>
+
 ## Info
 
 Bot to filter duplicate messages from group chat.
