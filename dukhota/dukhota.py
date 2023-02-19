@@ -41,9 +41,18 @@ async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  
 
     logging.debug(history_list)
 
+    unique = True
+
     if msg.fingerprint in history_list:
         logging.warning("Found fingerprint in history")
+        unique = False
 
+    if unique:
+        logging.warning(f"Saving message {msg.fingerprint} data")
+        r.set(f"msg:{msg.fingerprint}", msg.json())
+        r.expire(f"msg:{msg.fingerprint}", channel_history_expire)
+
+    if not unique:
         other_msg_data = json.loads(r.get(f"msg:{msg.fingerprint}"))
 
         # message is absent, remove from history
@@ -58,7 +67,7 @@ async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  
 
         await response(update, other_msg)
 
-    elif channel_seek_deep:
+    if unique and channel_seek_deep:
         logging.warning("Performing deep search")
 
         history_list = r.lrange(f"history:{msg.channel_id}", 0, channel_seek_depth)
@@ -75,10 +84,6 @@ async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  
             if msg == other_msg:
                 logging.warning("Found match during deep search")
                 await response(update, other_msg, emoji="🥸")
-
-                logging.warning(f"Saving message {msg.fingerprint} data")
-                r.set(f"msg:{msg.fingerprint}", msg.json())
-                r.expire(f"msg:{msg.fingerprint}", channel_history_expire)
 
                 break
 
