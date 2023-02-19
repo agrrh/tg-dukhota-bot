@@ -8,5 +8,6 @@ RUN pip install -r requirements.txt
 COPY ./ ./
 
 ENV PYTHONUNBUFFERED true
+ENV PYTHONHASHSEED 0
 
 CMD ["python", "main.py"]

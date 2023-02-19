@@ -1,142 +1,82 @@
-import hashlib
+import datetime
 import json
 import logging
 import os
 import redis
-import datetime
 
 from telegram import Update
 from telegram.ext import ContextTypes
 
+from dukhota.message import Message
+from dukhota.helpers import tg_update_to_message
+
 redis_host = os.environ.get("APP_REDIS_HOST", "127.0.0.1")
 redis_port = int(os.environ.get("APP_REDIS_PORT", "6379"))
 
-r = redis.Redis(host=redis_host, port=redis_port)
+r = redis.Redis(host=redis_host, port=redis_port, decode_responses=True)
 
 
-async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # logging.warning(update.to_dict())
+async def response(update: Update, ref_message: Message, emoji: str = "🤓") -> None:
+    text = f"{emoji} https://t.me/c/{ref_message.chat_id}/{ref_message.message_id}"
+    logging.debug(text)
 
-    channel = update.message.chat.id
-    channel_seek_depth = 100
+    await update.message.reply_text(text)
+
+
+async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  # noqa: CCR001
+    msg = tg_update_to_message(update)
+
+    logging.warning(f"Processing message {msg.fingerprint}")
+    logging.debug(msg)
+
     channel_seek_deep = True
+    channel_seek_depth = 100
     channel_history_limit = 1000
-    content_min_length = 64
 
     channel_history_expire = datetime.timedelta(days=90)  # 3 months
 
-    similar_weight_limit = 80
+    logging.warning("Seek for message fingerprint in history")
 
-    # fingerprints
+    history_list = r.lrange(f"history:{msg.channel_id}", 0, channel_seek_depth)
 
-    update_message_dict = update.to_dict().get("message", {})
+    logging.debug(history_list)
 
-    fingerprint_id = {
-        "forward_chat": update_message_dict.get("forward_from_chat", {}).get("id"),
-        "forward_message_id": update_message_dict.get("forward_from_message_id"),
-        "forward_username": update_message_dict.get("forward_from_chat", {}).get("username"),
-        "this_chat": update_message_dict.get("chat", {}).get("id"),
-        "this_message_id": update_message_dict.get("message_id"),
-    }
+    if msg.fingerprint in history_list:
+        logging.warning("Found fingerprint in history")
 
-    fingerprint_text = {
-        "text": update_message_dict.get("text"),
-        "caption": update_message_dict.get("caption"),
-    }
+        other_msg_data = json.loads(r.get(f"msg:{msg.fingerprint}"))
 
-    fingerprint_media = {
-        "video": update_message_dict.get("video", {}).get("file_id"),
-        "photo": list({photo.get("file_unique_id") for photo in update_message_dict.get("photo", [])}),
-    }
+        # message is absent, remove from history
+        if other_msg_data is None:
+            r.lrem(f"history:{msg.channel_id}", 0, msg.fingerprint)
 
-    fingerprints = {
-        "id": json.dumps(fingerprint_id),
-        "text": json.dumps(fingerprint_text),
-        "media": json.dumps(fingerprint_media),
-    }
+        other_msg = Message(**other_msg_data)
+        logging.debug(other_msg)
 
-    fingerprints_md5 = hashlib.md5(json.dumps(fingerprints).encode("utf-8")).hexdigest()
+        logging.warning(f"Refreshing {msg.fingerprint} TTL")
+        r.expire(f"msg:{msg.fingerprint}", channel_history_expire)
 
-    history_list = r.lrange(f"history:{channel}", 0, channel_seek_depth)
-    logging.warning(fingerprints_md5)
-    logging.warning(history_list)
-
-    if fingerprints_md5.encode() in history_list:
-        logging.warning(fingerprint_id)
-        message_link = "https://t.me/c/{this_chat}/{this_message_id}".format(**candidate_id)
-        await update.message.reply_text(f"💩 {message_link} 🤓")
-        return None
+        await response(update, other_msg)
 
     elif channel_seek_deep:
-        for candidate_md5 in history_list:
-            similar_weight = 0
+        logging.warning("Performing deep search")
 
-            candidate_md5 = candidate_md5.decode()
+        history_list = r.lrange(f"history:{msg.channel_id}", 0, channel_seek_depth)
 
-            candidate_id = r.hget(f"msg:{candidate_md5}", "id")
-            candidate_id = json.loads(candidate_id.decode())
+        for other_msg_fingerprint in history_list:
+            other_msg_data = json.loads(r.get(f"msg:{other_msg_fingerprint}"))
+            other_msg = Message(**other_msg_data)
 
-            message_link = "https://t.me/c/{this_chat}/{this_message_id}".format(**candidate_id)
-            message_link = message_link.replace("/c/-100", "/c/")
+            if msg == other_msg:
+                logging.warning("Found match during deep search")
+                await response(update, other_msg, emoji="🥸")
 
-            same_chat = candidate_id.get("this_chat") == fingerprint_id.get("this_chat")
-            same_message_id = candidate_id.get("this_message_id") == fingerprint_id.get("this_message_id")
+                logging.warning(f"Saving message {msg.fingerprint} data")
+                r.set(f"msg:{msg.fingerprint}", msg.json())
+                r.expire(f"msg:{msg.fingerprint}", channel_history_expire)
 
-            if same_chat and same_message_id:
-                similar_weight += 100
+                break
 
-            if fingerprint_id.get("forward_chat"):
-                same_forward_chat = candidate_id.get("forward_chat") == fingerprint_id.get("forward_chat")
-                same_forward_message_id = candidate_id.get("forward_message_id") == fingerprint_id.get(
-                    "forward_message_id"
-                )
-
-                if same_forward_chat and same_forward_message_id:
-                    similar_weight += 100
-
-            candidate_text = r.hget(f"msg:{candidate_md5}", "text")
-            candidate_text = json.loads(candidate_text.decode())
-
-            if candidate_text.get("text") or candidate_text.get("caption"):
-                len_content = max(
-                    len(fingerprint_text.get("text") or ""),
-                    len(fingerprint_text.get("caption") or ""),
-                )
-                if len_content < content_min_length:
-                    continue
-
-                same_text = candidate_text.get("text") == fingerprint_text.get("text")
-                same_caption = candidate_text.get("caption") == fingerprint_text.get("caption")
-
-                if same_text:
-                    similar_weight += 45
-
-                if same_caption:
-                    similar_weight += 45
-
-            candidate_media = r.hget(f"msg:{candidate_md5}", "media")
-            candidate_media = json.loads(candidate_media.decode())
-
-            if candidate_media.get("video") or candidate_media.get("photo"):
-                same_video = candidate_media.get("video") == fingerprint_media.get("video")
-                same_photo = candidate_media.get("photo") == fingerprint_media.get("photo")
-
-                if same_video or same_photo:
-                    similar_weight += 45
-
-            # Result
-
-            if similar_weight > 0:
-                logging.warning(
-                    f"similarity {fingerprints_md5} vs {candidate_md5}: {similar_weight} of {similar_weight_limit}"
-                )
-
-            if similar_weight > similar_weight_limit:
-                await update.message.reply_text(f"💩 {message_link} 🥸")
-                return None
-
-    r.hset(f"msg:{fingerprints_md5}", mapping=fingerprints)
-    r.expire(f"msg:{fingerprints_md5}", channel_history_expire)
-
-    r.lpush(f"history:{channel}", fingerprints_md5)
-    r.ltrim(f"history:{channel}", 0, channel_history_limit)
+    logging.warning(f"Saving message {msg.fingerprint} to channel {msg.channel_id} history")
+    r.lpush(f"history:{msg.channel_id}", msg.fingerprint)
+    r.ltrim(f"history:{msg.channel_id}", 0, channel_history_limit)
