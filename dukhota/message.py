@@ -81,6 +81,8 @@ class Message(BaseModel):
             same_text_ratio = difflib.SequenceMatcher(None, compare_self, compare_other).ratio()  # 0.00 to 1.00
             logging.debug(f"Same text ratio for {self.fingerprint} vs {other.fingerprint}: {same_text_ratio}")
 
+        logging.debug(f"same_text_ratio is {same_text_ratio}")
+
         # same media
 
         same_media_list = list(set(self.media_ids) & set(other.media_ids))
@@ -88,10 +90,12 @@ class Message(BaseModel):
 
         same_media_ratio = len(same_media_list) / max_media_len
 
-        if same_media_ratio >= 0.66 and same_text_ratio > 0.8:
+        logging.debug(f"same_media_ratio is {same_media_ratio}")
+
+        if same_media_ratio >= 0.66 and same_text_ratio > 0.80:
             return True
 
-        if same_text_ratio > 0.95:
+        if same_text_ratio > 0.90:
             return True
 
         pass
