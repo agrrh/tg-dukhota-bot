@@ -93,7 +93,6 @@ async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
                 if same_forward_chat and same_forward_message_id:
                     similar_weight += 100
-                    message_link = "https://t.me/{forward_username}/{forward_message_id}".format(**candidate_id)
 
             candidate_text = r.hget(f"msg:{candidate_md5}", "text")
             candidate_text = json.loads(candidate_text.decode())
