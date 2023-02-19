@@ -1,4 +1,4 @@
-![Dukhota Logo](https://via.placeholder.com/800x150/FFFFFF/000000/?text=Духота)
+![Dukhota Logo](https://via.placeholder.com/800x150/FFFFFF/000000/?text=ДУХОТА)
 
 ---
 
