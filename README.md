@@ -1,1 +1,1 @@
-# Telegram Dushnila Bot
+# Telegram Dukhota Bot
