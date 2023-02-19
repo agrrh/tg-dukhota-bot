@@ -64,7 +64,7 @@ async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if fingerprints_md5.encode() in history_list:
         logging.warning(fingerprint_id)
         message_link = "https://t.me/c/{this_chat}/{this_message_id}".format(**candidate_id)
-        await update.message.reply_text(f"🤓 {message_link}")
+        await update.message.reply_text(f"💩 {message_link} 🤓")
         return None
 
     elif channel_seek_deep:
@@ -132,7 +132,7 @@ async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 )
 
             if similar_weight > similar_weight_limit:
-                await update.message.reply_text(f"🥸 {message_link}")
+                await update.message.reply_text(f"💩 {message_link} 🥸")
                 return None
 
     r.hset(f"msg:{fingerprints_md5}", mapping=fingerprints)
