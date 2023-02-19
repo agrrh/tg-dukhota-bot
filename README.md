@@ -4,8 +4,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@700&display=swap" rel="stylesheet">
 
-<p align="center" style="font-family: Montserrat Alternates;">
-  <img src="./runatlantis.io/.vuepress/public/hero.png" alt="Atlantis Logo"/><br><br>
+<p align="center" style="font-family: 'Montserrat Alternates';">
+  <img src="https://via.placeholder.com/800x150/FFFFFF/000000/?text=Dukhota"><br><br>
   <b>Terraform Pull Request Automation</b>
 </p>
 
