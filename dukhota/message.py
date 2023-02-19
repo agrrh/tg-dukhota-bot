@@ -83,20 +83,21 @@ class Message(BaseModel):
 
         logging.debug(f"same_text_ratio is {same_text_ratio}")
 
-        # same media
-
-        same_media_list = list(set(self.media_ids) & set(other.media_ids))
-        max_media_len = max(len(self.media_ids), len(other.media_ids))
-
-        same_media_ratio = len(same_media_list) / max_media_len
-
-        logging.debug(f"same_media_ratio is {same_media_ratio}")
-
-        if same_media_ratio >= 0.66 and same_text_ratio > 0.50:
-            return True
-
         if same_text_ratio > 0.75:
             return True
+
+        # same media
+
+        if self.media_ids:
+            same_media_list = list(set(self.media_ids) & set(other.media_ids))
+            max_media_len = max(len(self.media_ids), len(other.media_ids))
+
+            same_media_ratio = len(same_media_list) / max_media_len
+
+            logging.debug(f"same_media_ratio is {same_media_ratio}")
+
+            if same_media_ratio >= 0.66 and same_text_ratio > 0.50:
+                return True
 
         pass
 
