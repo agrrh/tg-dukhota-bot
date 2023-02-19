@@ -64,7 +64,12 @@ async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  
         history_list = r.lrange(f"history:{msg.channel_id}", 0, channel_seek_depth)
 
         for other_msg_fingerprint in history_list:
-            other_msg_data = json.loads(r.get(f"msg:{other_msg_fingerprint}"))
+            try:
+                other_msg_data = json.loads(r.get(f"msg:{other_msg_fingerprint}"))
+            except TypeError:
+                logging.error(f"Could not load message {other_msg_fingerprint}")
+                continue
+
             other_msg = Message(**other_msg_data)
 
             if msg == other_msg:
