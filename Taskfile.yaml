@@ -1,0 +1,42 @@
+---
+
+version: '3'
+
+tasks:
+  build:docker:
+    cmds:
+      - docker build . -t local/tg-dukhota-bot:dev
+
+  stop:docker:
+    cmds:
+      - docker rm -f dukhota || true
+
+  stop:redis:
+    cmds:
+      - docker rm -f dukhota-redis || true
+
+  run:local:
+    dotenv:
+      - local.env
+    cmds:
+      - python main.py
+
+  run:docker:
+    deps:
+      - stop:docker
+      - build:docker
+    cmds:
+      - >-
+        docker run --name dukhota \
+          --env-file local.env \
+          --network host \
+          local/tg-dukhota-bot:dev
+
+  run:redis:
+    cmds:
+      - >-
+        docker run \
+          --rm --detach \
+          --name dukhota-redis \
+          --network host \
+          redis:6
