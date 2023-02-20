@@ -30,8 +30,8 @@ async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  
     logging.debug(msg)
 
     channel_seek_deep = True
-    channel_seek_depth = 100
-    channel_history_limit = 1000
+    channel_seek_depth = 500
+    channel_history_limit = 5000
 
     channel_history_expire = datetime.timedelta(days=90)  # 3 months
 
