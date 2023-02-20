@@ -23,8 +23,11 @@ async def response(update: Update, ref_message: Message, emoji: str = "🤓") ->
     await update.message.reply_text(text)
 
 
-async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  # noqa: CCR001
+async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  # noqa: CAC001, CCR001
     msg = tg_update_to_message(update)
+
+    if not msg.is_comparable():
+        return None
 
     logging.warning(f"Processing message {msg.fingerprint}")
     logging.debug(msg)

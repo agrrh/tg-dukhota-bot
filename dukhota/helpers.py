@@ -5,7 +5,7 @@ from dukhota.message import Message
 
 
 def tg_update_to_message(update: Update) -> Message:
-    logging.warning(update.to_dict())
+    logging.debug(update.to_dict())
 
     update_message_dict = update.to_dict().get("message", {})
 

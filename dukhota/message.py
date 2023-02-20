@@ -44,14 +44,14 @@ class Message(BaseModel):
 
         return hashlib.sha256(";".join(fingerprint_parts).encode("utf-8")).hexdigest()
 
-    def __is_comparable(self) -> bool:
+    def is_comparable(self) -> bool:
         ids_present = self.channel_id and self.message_id
         significant_content = self.media_ids or len(self.text) > 64
 
         return ids_present and significant_content
 
     def __eq__(self, other: object) -> bool:  # noqa: CAC001, CCR001, CFQ004
-        if not self.__is_comparable():
+        if not self.is_comparable():
             return NotImplemented
 
         if self.fingerprint == other.fingerprint:
