@@ -7,11 +7,14 @@ import logging
 
 
 class Message(BaseModel):
+    from_id: Optional[int]
     channel_id: Optional[int]
     message_id: Optional[int]
 
     from_channel_id: Optional[int]
     from_message_id: Optional[int]
+
+    forward_from_id: Optional[int]
 
     text: Optional[str]
     caption: Optional[str]
@@ -48,7 +51,9 @@ class Message(BaseModel):
         ids_present = self.channel_id and self.message_id
         significant_content = self.media_ids or len(self.text) > 64
 
-        return ids_present and significant_content
+        forward_self = self.forward_from_id and self.forward_from_id == self.from_id
+
+        return ids_present and significant_content and not forward_self
 
     def __eq__(self, other: object) -> bool:  # noqa: CAC001, CCR001, CFQ004
         if not self.is_comparable():

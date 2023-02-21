@@ -5,15 +5,18 @@ from dukhota.message import Message
 
 
 def tg_update_to_message(update: Update) -> Message:
-    logging.debug(update.to_dict())
+    logging.warning(update.to_dict())
 
     update_message_dict = update.to_dict().get("message", {})
 
+    from_id = update_message_dict.get("from", {}).get("id")
     channel_id = update_message_dict.get("chat", {}).get("id")
     message_id = update_message_dict.get("message_id")
 
     from_channel_id = update_message_dict.get("forward_from_chat", {}).get("id")
     from_message_id = update_message_dict.get("forward_from_message_id")
+
+    forward_from_id = update_message_dict.get("forward_from", {}).get("id")
 
     text = update_message_dict.get("text")
     caption = update_message_dict.get("caption")
@@ -26,10 +29,12 @@ def tg_update_to_message(update: Update) -> Message:
     media_ids = list(filter(None, media_ids))  # remove empty
 
     return Message(
+        from_id=from_id,
         channel_id=channel_id,
         message_id=message_id,
         from_channel_id=from_channel_id,
         from_message_id=from_message_id,
+        forward_from_id=forward_from_id,
         text=text,
         caption=caption,
         media_ids=media_ids,
