@@ -16,6 +16,12 @@ It notifies on:
 
 Just add `@dukhota_bot` to your group chat.
 
+>Note!
+>
+>Chat must be public to let bot generate proper URLs.
+>
+>It's fine to make chat it public and revert back to private.
+
 ### Example
 
 1. Send message #1 with an image and caption text
