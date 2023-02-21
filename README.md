@@ -12,6 +12,10 @@ It notifies on:
 - 90%+ similar text
 - 66%+ similar media and 80%+ similar text
 
+### Usage
+
+Just add `@dukhota_bot` to your group chat.
+
 ### Example
 
 1. Send message #1 with an image and caption text
@@ -19,10 +23,6 @@ It notifies on:
 1. Bot replies to message #2 with link to message #1
 
 ![example](./docs/img/example.png)
-
-### Usage
-
-Just add `@dukhota_bot` to your group chat.
 
 ## Roadmap
 
