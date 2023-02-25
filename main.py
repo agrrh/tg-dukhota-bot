@@ -8,6 +8,10 @@ from dukhota.dukhota import process
 LOGLEVEL = os.environ.get("LOGLEVEL", "WARNING").upper()
 logging.basicConfig(level=LOGLEVEL)
 
+for logging_module in ("hpack.hpack", "telegram._bot", "httpx._client"):
+    logger = logging.getLogger(logging_module)
+    logger.setLevel(logging.WARNING)
+
 token = os.environ.get("APP_TG_TOKEN")
 app = ApplicationBuilder().token(token).build()
 
