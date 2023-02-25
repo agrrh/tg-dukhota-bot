@@ -8,7 +8,14 @@ from dukhota.dukhota import process
 LOGLEVEL = os.environ.get("LOGLEVEL", "WARNING").upper()
 logging.basicConfig(level=LOGLEVEL)
 
-for logging_module in ("hpack.hpack", "telegram._bot", "httpx._client"):
+modules_suppress_log = (
+    "asyncio",
+    "hpack",
+    "httpx",
+    "telegram",
+)
+
+for logging_module in modules_suppress_log:
     logger = logging.getLogger(logging_module)
     logger.setLevel(logging.WARNING)
 
