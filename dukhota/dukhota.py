@@ -18,7 +18,6 @@ r = redis.Redis(host=redis_host, port=redis_port, decode_responses=True)
 
 async def response(update: Update, ref_message: Message, emoji: str = "🤓") -> None:
     text = f"{emoji} https://t.me/c/{ref_message.chat_id}/{ref_message.message_id}"
-    logging.debug(text)
 
     await update.message.reply_text(text)
 
@@ -42,8 +41,6 @@ async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  
 
     history_list = r.lrange(f"history:{msg.channel_id}", 0, channel_seek_depth)
 
-    logging.debug(history_list)
-
     unique = True
 
     if msg.fingerprint in history_list:
@@ -63,7 +60,6 @@ async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  
             r.lrem(f"history:{msg.channel_id}", 0, msg.fingerprint)
 
         other_msg = Message(**other_msg_data)
-        logging.debug(other_msg)
 
         logging.warning(f"Refreshing {msg.fingerprint} TTL")
         r.expire(f"msg:{msg.fingerprint}", channel_history_expire)

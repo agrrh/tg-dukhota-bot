@@ -19,6 +19,8 @@ for logging_module in modules_suppress_log:
     logger = logging.getLogger(logging_module)
     logger.setLevel(logging.WARNING)
 
+logging.critical("Starting application")
+
 token = os.environ.get("APP_TG_TOKEN")
 app = ApplicationBuilder().token(token).build()
 
