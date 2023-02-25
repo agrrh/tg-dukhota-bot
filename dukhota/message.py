@@ -27,7 +27,7 @@ class Message(BaseModel):
     # channel_id without "-100" prefix
     chat_id: Optional[int]
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs) -> None:  # noqa: ANN003
         super().__init__(**kwargs)
         object.__setattr__(self, "chat_id", self.__chat_id())
         object.__setattr__(self, "fingerprint", self.__gen_fingerprint())
@@ -56,15 +56,21 @@ class Message(BaseModel):
         return ids_present and significant_content and not forward_self
 
     def __eq__(self, other: object) -> bool:  # noqa: CAC001, CCR001, CFQ004
+        logging.info(f"Match messages: {self.fingerprint}/{other.fingerprint}")
+        logging.debug(self.dict(exclude_unset=True))
+        logging.debug(other.dict(exclude_unset=True))
+
         if not self.is_comparable():
             return NotImplemented
 
         if self.fingerprint == other.fingerprint:
+            logging.info("Messages matched by fingerprint")
             return True
 
         same_message = self.channel_id and self.channel_id == other.channel_id and self.message_id == other.message_id
 
         if same_message:
+            logging.info("Messages matched as same ones")
             return True
 
         same_forwarded = (
@@ -74,6 +80,7 @@ class Message(BaseModel):
         )
 
         if same_forwarded:
+            logging.info("Messages matched as same forwarded ones")
             return True
 
         compare_self = self.text or self.caption or ""
@@ -89,6 +96,7 @@ class Message(BaseModel):
         logging.debug(f"same_text_ratio is {same_text_ratio}")
 
         if same_text_ratio > 0.75:
+            logging.info(f"Messages matched by same text ratio: {round(same_text_ratio, 2)}")
             return True
 
         # same media
@@ -102,8 +110,10 @@ class Message(BaseModel):
             logging.debug(f"same_media_ratio is {same_media_ratio}")
 
             if same_media_ratio >= 0.66 and same_text_ratio > 0.50:
+                logging.info(
+                    "Messages matched by same media and text ratio: "
+                    f"{round(same_media_ratio, 2)}, {round(same_text_ratio, 2)}",
+                )
                 return True
-
-        pass
 
         return False
