@@ -43,8 +43,6 @@ class Message(BaseModel):
             ",".join(self.media_ids),
         ]
 
-        logging.debug(fingerprint_parts)
-
         return hashlib.sha256(";".join(fingerprint_parts).encode("utf-8")).hexdigest()
 
     def is_comparable(self) -> bool:
