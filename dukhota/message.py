@@ -93,7 +93,14 @@ class Message(BaseModel):
 
         logging.debug(f"same_text_ratio is {same_text_ratio}")
 
-        if same_text_ratio > 0.75:
+        media_ratio_limit = 0.50
+
+        text_ratio_limit = 0.75
+        text_ratio_media_limit = 0.35
+        if self.from_channel_id and self.from_message_id:
+            text_ratio_limit = 0.60
+
+        if same_text_ratio > text_ratio_limit:
             logging.info(f"Messages matched by same text ratio: {round(same_text_ratio, 2)}")
             return True
 
@@ -107,7 +114,7 @@ class Message(BaseModel):
 
             logging.debug(f"same_media_ratio is {same_media_ratio}")
 
-            if same_media_ratio >= 0.66 and same_text_ratio > 0.50:
+            if same_media_ratio >= media_ratio_limit and same_text_ratio > text_ratio_media_limit:
                 logging.info(
                     "Messages matched by same media and text ratio: "
                     f"{round(same_media_ratio, 2)}, {round(same_text_ratio, 2)}",
