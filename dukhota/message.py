@@ -24,6 +24,8 @@ class Message(BaseModel):
     # hash of message contents
     fingerprint: Optional[str]
 
+    significant_text: Optional[bool] = False
+
     # channel_id without "-100" prefix
     chat_id: Optional[int]
 
