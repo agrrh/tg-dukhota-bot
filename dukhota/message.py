@@ -29,8 +29,9 @@ class Message(BaseModel):
 
     def __init__(self, **kwargs) -> None:  # noqa: ANN003
         super().__init__(**kwargs)
-        object.__setattr__(self, "chat_id", self.__chat_id())
-        object.__setattr__(self, "fingerprint", self.__gen_fingerprint())
+        self.chat_id = self.__chat_id()
+        self.fingerprint = self.__gen_fingerprint()
+        self.significant_text = len(self.text or self.caption or "") > 64
 
     def __chat_id(self) -> int:
         return int(str(self.channel_id).replace("-100", ""))
@@ -43,11 +44,13 @@ class Message(BaseModel):
             ",".join(self.media_ids),
         ]
 
-        return hashlib.sha256(";".join(fingerprint_parts).encode("utf-8")).hexdigest()
+        fingerprint = hashlib.sha256(";".join(fingerprint_parts).encode("utf-8")).hexdigest()
+
+        return fingerprint[:16]
 
     def is_comparable(self) -> bool:
         ids_present = self.channel_id and self.message_id
-        significant_content = self.media_ids or len(self.text) > 64
+        significant_content = self.media_ids or self.significant_text
 
         forward_self = self.forward_from_id and self.forward_from_id == self.from_id
 
@@ -93,14 +96,14 @@ class Message(BaseModel):
 
         logging.debug(f"same_text_ratio is {same_text_ratio}")
 
-        media_ratio_limit = 0.50
+        media_ratio_limit = 0.66
 
         text_ratio_limit = 0.75
-        text_ratio_media_limit = 0.35
+        text_ratio_media_limit = 0.33
         if self.from_channel_id and self.from_message_id:
-            text_ratio_limit = 0.60
+            text_ratio_limit = 0.66
 
-        if same_text_ratio > text_ratio_limit:
+        if self.significant_text and same_text_ratio > text_ratio_limit:
             logging.info(f"Messages matched by same text ratio: {round(same_text_ratio, 2)}")
             return True
 
@@ -114,9 +117,16 @@ class Message(BaseModel):
 
             logging.debug(f"same_media_ratio is {same_media_ratio}")
 
-            if same_media_ratio >= media_ratio_limit and same_text_ratio > text_ratio_media_limit:
+            if self.significant_text and same_text_ratio > text_ratio_media_limit:
                 logging.info(
-                    "Messages matched by same media and text ratio: "
+                    "Messages matched by same text ratio with media presence: "
+                    f"{round(same_media_ratio, 2)}, {round(same_text_ratio, 2)}",
+                )
+                return True
+
+            if same_media_ratio >= media_ratio_limit:
+                logging.info(
+                    "Messages matched by same media ratio: "
                     f"{round(same_media_ratio, 2)}, {round(same_text_ratio, 2)}",
                 )
                 return True
