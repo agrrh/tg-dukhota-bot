@@ -8,6 +8,9 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from dukhota.message import Message
+from dukhota.comparsion import Comparsion
+
+# TODO: Move to Message
 from dukhota.helpers import tg_update_to_message
 
 redis_host = os.environ.get("APP_REDIS_HOST", "127.0.0.1")
@@ -31,6 +34,7 @@ async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  
     logging.warning(f"Processing message {msg.fingerprint}")
     logging.debug(msg)
 
+    # TODO: Make separate HistorySearchManager object
     channel_seek_deep = True
     channel_seek_depth = 500
     channel_history_limit = 5000
@@ -39,10 +43,12 @@ async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  
 
     logging.warning("Seek for message fingerprint in history")
 
+    # TODO: Make separate History object
     history_list = r.lrange(f"history:{msg.channel_id}", 0, channel_seek_depth)
 
     unique = True
 
+    # TODO: Should be "if Message in History"
     if msg.fingerprint in history_list:
         logging.warning("Found fingerprint in history")
         unique = False
@@ -80,7 +86,8 @@ async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  
 
             other_msg = Message(**other_msg_data)
 
-            if msg == other_msg:
+            c = Comparsion(message_a=msg, message_b=other_msg)
+            if c.check_equal():
                 logging.warning("Found match during deep search")
 
                 await response(update, other_msg, emoji="🥸")
