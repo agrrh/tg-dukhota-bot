@@ -26,6 +26,7 @@ async def response(update: Update, ref_message: Message, emoji: str = "🤓") ->
 
 
 async def process(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:  # noqa: CAC001, CCR001
+    # TODO: Move to Message as e.g. load_from_...
     msg = tg_update_to_message(update)
 
     if not msg.is_comparable():
