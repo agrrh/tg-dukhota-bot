@@ -96,7 +96,11 @@ class Comparsion(BaseModel):
 
             logging.debug(f"Comparsion {self.uuid}: same_media_ratio is {same_media_ratio}")
 
-            if self.message_a.significant_text and same_text_ratio > self.text_ratio_media_limit:
+            if (
+                same_media_ratio > 0.0
+                and self.message_a.significant_text
+                and same_text_ratio > self.text_ratio_media_limit
+            ):
                 logging.info(
                     f"Comparsion {self.uuid}: "
                     "Messages matched by same text ratio with media presence: "
